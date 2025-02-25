@@ -1,0 +1,64 @@
+{
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig to read more about each option. */
+
+    /* Projects */
+    "incremental": true,
+
+    /* Language and Environment */
+    "target": "es6",
+    "lib": ["es6", "es2017", "dom"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "moduleResolution": "node",
+
+    /* Modules */
+    "module": "commonjs",
+    "baseUrl": "./",
+    "paths": {
+      "*": ["src/*"]
+    },
+    "types": ["node"],
+    "typeRoots": ["./types", "./node_modules/@types"] ,
+    "allowUmdGlobalAccess": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* JavaScript Support */
+    "allowJs": true,
+
+    /* Emit */
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": true,
+    // "outFile": "./",  <-- REMOVE THIS LINE
+    "outDir": "./dist",
+    "removeComments": true,
+
+    /* Type Checking */
+    "strict": true,
+    "noImplicitAny": false,
+ 
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": false,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+  
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnreachableCode": false,
+
+    /* Completeness */
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*", "types/**/*"],
+  "exclude": ["node_modules"]
+}
