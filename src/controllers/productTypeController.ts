@@ -7,7 +7,6 @@ import { validate } from '../validations/index'
 class ProductTypeController {
   async createProductType(req: Request, res: Response): Promise<void> {
     try {
-        console.log('Product type controller', req.body);
       const validatedData = validate(productTypeValidationSchema, req.body);
       const productType = new ProductType(validatedData);
       await productType.save();
@@ -83,7 +82,6 @@ class ProductTypeController {
       name:productName,
       seller_id: { $in: sellers.map((seller) => seller._id) },
     }).sort({ price: 1 });
-    console.log('products: ', products);
     //Return the product with the lowest price
     if (products.length > 0) {
       res.status(200).json(products[0]);

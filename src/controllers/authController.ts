@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import User, { IUser } from '../models/User';
 import Otp from '../models/OTP'; 
 import bcrypt from 'bcrypt';
-import { generateToken, verifyToken } from '../utils/jwtUtils';
+import { generateToken } from '../utils/jwtUtils';
 import { generateOTP } from '../utils/otpUtils'; 
 import nodemailer from 'nodemailer';
 const SALT_ROUNDS = 10;
@@ -47,9 +47,7 @@ export const requestOTP = async (req: Request, res: Response) => {
 
         // Send the email
         await transporter.sendMail(mailOptions);
-       
         console.log(`Sending OTP ${otp} to ${email} for ${purpose}`); 
-
          res.status(200).json({ message: 'OTP sent successfully' });
 
     } catch (error: any) {
@@ -189,7 +187,6 @@ export const login = async (req: Request, res: Response) => {
 
         // Compare the password
         const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-        console.log(isPasswordValid, password, user.password_hash);
         if (!isPasswordValid) {
            res.status(401).json({ message: 'Invalid credentials' });
         }
@@ -224,11 +221,8 @@ export const token = async (req: Request, res: Response) => {
       // Verify the refresh token
         try {
           // Find the user associated with the refresh token
-          const decoded = await verifyToken(refreshToken);
-          console.log(decoded, 'decoded');
-         
+          //const decoded = await verifyToken(refreshToken);         
           const user = await User.findOne({refresh_token: refreshToken});
-          console.log(user, 'user');
           // Generate a new access token and a new refresh token
           const accessToken = generateToken(user as IUser, '1h');
           // Send the new access token and refresh token to the client
