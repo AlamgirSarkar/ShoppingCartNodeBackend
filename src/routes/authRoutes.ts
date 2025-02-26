@@ -1,7 +1,5 @@
 import express from 'express';
-import { register, login, requestOTP, verifyOTP } from '../controllers/authController';
-//import { authenticate } from '../middleware/authMiddleware';
-import { token } from '../controllers/authController';
+import { register, login, requestOTP, verifyOTP, token } from '../controllers/authController';
 const router = express.Router();
 
 /**
@@ -183,34 +181,7 @@ router.post('/otp/request', requestOTP);
  */
 router.post('/otp/verify', verifyOTP);
 
-// /**
-//  * @swagger
-//  * /auth/protected:
-//  *   get:
-//  *     summary: Example protected endpoint
-//  *     tags: [Authentication]
-//  *     security:
-//  *       - bearerAuth: []
-//  *     responses:
-//  *       200:
-//  *         description: Protected route accessed successfully
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: object
-//  *               properties:
-//  *                 message:
-//  *                   type: string
-//  *                   description: Success message
-//  *                 user:
-//  *                   type: object
-//  *                   description: User object from JWT
-//  *       401:
-//  *         description: Unauthorized - Missing or invalid token
-//  */
-// router.get('/protected', authenticate, (req: any, res: any) => {
-//   res.json({ message: 'This is a protected route', user: req.user });
-// });
+
 /**
  * @swagger
  * /auth/token:

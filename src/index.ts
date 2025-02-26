@@ -18,7 +18,8 @@ import inventoryRoutes from './routes/inventoryRoutes' //Import inventory routes
 import cartRoutes from './routes/cartRoutes';
 import cartItemRoutes from './routes/cartItemRoutes';
 import reviewRoutes from './routes/reviewRoutes';
-
+import sellerRoutes from './routes/sellerRoutes';
+import productType from './routes/productTypeRoutes';
 dotenv.config();
 
 const app: Application = express();
@@ -44,7 +45,8 @@ app.use('/inventory', inventoryRoutes);
 app.use('/carts', cartRoutes);
 app.use('/cartItems', cartItemRoutes)
 app.use('/reviews', reviewRoutes);
-
+app.use('/sellers',sellerRoutes);
+app.use('/product-types', productType);
 // Connect to MongoDB
 connectDB();
 

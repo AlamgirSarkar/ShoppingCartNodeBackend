@@ -91,6 +91,8 @@ router.get('/', getAllProducts);
  */
 router.get('/:id', getProductById);
 
+
+
 /**
  * @swagger
  * /products/category/{categoryId}:
@@ -141,7 +143,7 @@ router.get('/category/:categoryId', getProductsByCategory);
  * @swagger
  * /products:
  *   post:
- *     summary: Create a new product (Admin only)
+ *     summary: Create a new product
  *     tags: [Products]
  *     description: Create a new product in the system. Requires authentication.
  *     security:

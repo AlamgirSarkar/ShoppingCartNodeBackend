@@ -25,13 +25,13 @@ class ReviewController {
     }
   }
 
-  async getReviewById(req: any, res: any): Promise<void> {
+  async getReviewById(req: Request, res: Response): Promise<Response> {
     try {
-       if (!mongoose.isValidObjectId(req.params.id)) {
+       if (!mongoose.isValidObjectId(req.params['id'])) {
           return res.status(400).json({ message: 'Invalid Review ID' });
         }
 
-      const review = await Review.findById(req.params.id);
+      const review = await Review.findById(req.params['id']);
       if (!review) {
         return res.status(404).json({ message: 'Review not found' });
       }
@@ -41,11 +41,11 @@ class ReviewController {
     }
   }
 
-  async getAllReviews(req: any, res: any): Promise<void> {
+  async getAllReviews(req: Request, res: Response): Promise<Response> {
     try {
         let filter = {};
-        if(req.query.product_id) {
-            filter = {product_id: req.query.product_id}
+        if(req.query['product_id']) {
+            filter = {product_id: req.query['product_id']}
         }
       const reviews = await Review.find(filter);
       return res.json(reviews);
@@ -54,12 +54,12 @@ class ReviewController {
     }
   }
 
-  async updateReview(req: any, res: any): Promise<void> {
+  async updateReview(req: Request, res: Response): Promise<Response> {
     try {
-       if (!mongoose.isValidObjectId(req.params.id)) {
+       if (!mongoose.isValidObjectId(req.params['id'])) {
           return res.status(400).json({ message: 'Invalid Review ID' });
         }
-      const review = await Review.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      const review = await Review.findByIdAndUpdate(req.params['id'], req.body, { new: true });
       if (!review) {
         return res.status(404).json({ message: 'Review not found' });
       }
@@ -69,13 +69,13 @@ class ReviewController {
     }
   }
 
-  async deleteReview(req: any, res: any): Promise<void> {
+  async deleteReview(req: Request, res: Response): Promise<Response> {
     try {
-      if (!mongoose.isValidObjectId(req.params.id)) {
+      if (!mongoose.isValidObjectId(req.params['id'])) {
           return res.status(400).json({ message: 'Invalid Review ID' });
         }
 
-      const result = await Review.deleteOne({ _id: req.params.id });
+      const result = await Review.deleteOne({ _id: req.params['id'] });
       if (result.deletedCount === 0) {
         return res.status(404).json({ message: 'Review not found' });
       }

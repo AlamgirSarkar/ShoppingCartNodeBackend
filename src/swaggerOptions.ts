@@ -141,6 +141,10 @@ const swaggerOptions: Options = {
                 type: 'string',
                 description: 'The ID of the category this product belongs to'
               },
+              seller_id: {
+                type: 'string',
+                description: 'The ID of the seller who sells this product'
+              },
               image_url: {
                 type: 'string',
                 description: 'The product image URL'

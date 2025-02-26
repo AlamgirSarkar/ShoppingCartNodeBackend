@@ -20,8 +20,20 @@ export const productSchema = Joi.object({
       'string.length': `"category_id" must be 24 characters long`,
       'any.required': `"category_id" is a required field`
     }),
+  seller_id: Joi.string().required().hex().length(24).messages({
+      'string.base': `"seller_id" should be a type of 'text'`,
+      'string.hex': `"seller_id" must be a valid hexadecimal string`,
+      'string.length': `"seller_id" must be 24 characters long`,
+      'any.required': `"seller_id" is a required field`
+    }),
   image_url: Joi.string().uri().messages({
       'string.base': `"image_url" should be a type of 'text'`,
       'string.uri': `"image_url" must be a valid URI`
-    })
+    }),
+  productType_id: Joi.string().hex().length(24).messages({
+      'string.base': `"productType_id" should be a type of 'text'`, 
+      'string.hex': `"productType_id" must be a valid hexadecimal string`,
+      'string.length': `"productType_id" must be 24 characters long`,
+      'any.required': `"productType_id" is a required field`
+})
 });

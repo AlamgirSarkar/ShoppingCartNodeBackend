@@ -11,15 +11,16 @@ export const getAllCategories = async (  _req:Request,  res: Response ):Promise<
   } catch (err:any) {
     console.log('err',err);
     res.json({ message: err.message });
+    return;
   }
 };
 
 // Get a category by ID
-export const getCategoryById = async (req: any, res: any) => {
+export const getCategoryById = async (req: Request, res: Response):Promise<void> => {
   try {
-    const category = await Category.findById(req.params.id);
+    const category = await Category.findById(req.params['id']);
     if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
+       res.status(404).json({ message: 'Category not found' });
     }
     res.status(200).json(category);
   } catch (err:any) {
@@ -44,11 +45,12 @@ export const createCategory = async (req: Request, res: Response) => {
 };
 
 // Update an existing category 
-export const updateCategory = async (req: any, res: any) => {
+export const updateCategory = async (req: Request, res: Response):Promise<void> => {
   try {
     const category = await Category.findById(req.params['id']);
     if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
+      res.status(404).json({ message: 'Category not found' });
+      return; 
     }
 
     if (req.body.name != null) {
@@ -60,17 +62,19 @@ export const updateCategory = async (req: any, res: any) => {
 
     const updatedCategory = await category.save();
     res.json(updatedCategory);
+    return
   } catch (err:any) {
     res.status(400).json({ message: err.message });
   }
 };
 
 // Delete a category
-export const deleteCategory = async (req: any, res: any) => {
+export const deleteCategory = async (req: Request, res: Response):Promise<void> => {
   try {
     const category = await Category.findById(req.params['id']);
     if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
+       res.status(404).json({ message: 'Category not found' });
+       return
     }
 
     await category.deleteOne();
