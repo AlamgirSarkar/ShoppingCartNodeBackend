@@ -26,9 +26,7 @@ class OrderItemController {
 
   async getOrderItemById(req: Request, res: Response): Promise<void> {
     try {
-        console.log('req.params',req.params);
       if (!mongoose.isValidObjectId(req.params['orderId'])) {
-        console.log('test1')
            res.status(400).json({ message: 'Invalid OrderItem ID' });
       }
 
@@ -53,7 +51,6 @@ class OrderItemController {
 
   async updateOrderItem(req: Request, res: Response): Promise<void> {
     try {
-      console.log(req.params);
       if (!mongoose.isValidObjectId(req.params['orderId'])) {
            res.status(400).json({ message: 'Invalid OrderItem ID' });
       }

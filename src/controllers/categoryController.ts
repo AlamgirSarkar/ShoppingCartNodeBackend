@@ -3,13 +3,10 @@ import Category from '../models/Category';
 
 // Get all categories
 export const getAllCategories = async (  _req:Request,  res: Response ):Promise<void> => {
-    console.log('getAllCategories');
   try {
     const categories = await Category.find();
-    console.log('categories',categories);
     res.status(201).json(categories);
   } catch (err:any) {
-    console.log('err',err);
     res.json({ message: err.message });
     return;
   }
