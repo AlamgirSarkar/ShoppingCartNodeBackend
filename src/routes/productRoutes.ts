@@ -188,7 +188,7 @@ router.post('/', authenticate, createProduct);
  * @swagger
  * /products/{id}:
  *   put:
- *     summary: Update an existing product (Admin only)
+ *     summary: Update an existing product
  *     tags: [Products]
  *     description: Update an existing product in the system. Requires authentication.
  *     security:

@@ -148,7 +148,11 @@ const swaggerOptions: Options = {
               image_url: {
                 type: 'string',
                 description: 'The product image URL'
-              }
+              },
+              stock: {
+                type: 'number',
+                description: 'The quantity of the product in stock'
+              },
             }
           },
           Order: {

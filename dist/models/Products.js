@@ -39,7 +39,10 @@ const ProductSchema = new mongoose_1.Schema({
     description: { type: String },
     price: { type: Number, required: true },
     category_id: { type: mongoose_1.default.Types.ObjectId, ref: 'Category', required: true },
+    seller_id: { type: mongoose_1.default.Types.ObjectId, ref: 'Seller', required: true },
     image_url: { type: String },
+    productType_id: { type: mongoose_1.default.Types.ObjectId, ref: 'ProductType' },
+    stock: { type: Number, required: true }
 }, { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } });
 exports.default = mongoose_1.default.model('Product', ProductSchema);
 //# sourceMappingURL=Products.js.map

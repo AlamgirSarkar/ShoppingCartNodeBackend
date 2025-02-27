@@ -3,7 +3,7 @@ import Product from '../models/Products';
 import mongoose from 'mongoose';
 import { productSchema } from '../validations/productValidation'; 
 import { validate } from '../validations/index';
-import ProductType from '../models/productType';
+import ProductType from '../models/ProductType';
 // Get all products
 export const getAllProducts = async (_req: Request, res: Response) => {
   try {
@@ -49,7 +49,6 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
-  
 };
 
 // Update an existing product
