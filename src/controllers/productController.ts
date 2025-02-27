@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { productSchema } from '../validations/productValidation'; 
 import { validate } from '../validations/index';
 import ProductType from '../models/ProductType';
+
 // Get all products
 export const getAllProducts = async (_req: Request, res: Response) => {
   try {
@@ -110,4 +111,3 @@ export const getProductsByCategory = async (req: Request, res: Response):Promise
     res.status(500).json({ message: err.message });
   }
 };
-
