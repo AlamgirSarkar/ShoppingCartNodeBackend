@@ -15,7 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getProductsByCategory = exports.deleteProduct = exports.updateProduct = exports.createProduct = exports.getProductById = exports.getAllProducts = void 0;
 const Products_1 = __importDefault(require("../models/Products"));
 const mongoose_1 = __importDefault(require("mongoose"));
-const getAllProducts = (res) => __awaiter(void 0, void 0, void 0, function* () {
+const productValidation_1 = require("../validations/productValidation");
+const index_1 = require("../validations/index");
+const ProductType_1 = __importDefault(require("../models/ProductType"));
+const getAllProducts = (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const products = yield Products_1.default.find();
         res.json(products);
@@ -29,7 +32,7 @@ const getProductById = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         const product = yield Products_1.default.findById(req.params['id']);
         if (!product) {
-            return res.status(404).json({ message: 'Product not found' });
+            res.status(404).json({ message: 'Product not found' });
         }
         res.json(product);
     }
@@ -39,19 +42,19 @@ const getProductById = (req, res) => __awaiter(void 0, void 0, void 0, function*
 });
 exports.getProductById = getProductById;
 const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const product = new Products_1.default({
-        name: req.body.name,
-        description: req.body.description,
-        price: req.body.price,
-        category_id: req.body.category_id,
-        image_url: req.body.image_url
-    });
     try {
-        const newProduct = yield product.save();
-        res.status(201).json(newProduct);
+        const validatedData = (0, index_1.validate)(productValidation_1.productSchema, req.body);
+        let productType = yield ProductType_1.default.findOne({ name: validatedData.name });
+        if (!productType) {
+            productType = new ProductType_1.default({ name: validatedData.name });
+            yield productType.save();
+        }
+        const product = new Products_1.default(Object.assign(Object.assign({}, validatedData), { productType: productType._id }));
+        yield product.save();
+        res.status(201).json(product);
     }
-    catch (err) {
-        res.status(400).json({ message: err.message });
+    catch (error) {
+        res.status(400).json({ message: error.message });
     }
 });
 exports.createProduct = createProduct;
@@ -88,9 +91,9 @@ const deleteProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const product = yield Products_1.default.findById(req.params['id']);
         if (!product) {
-            return res.status(404).json({ message: 'Product not found' });
+            res.status(404).json({ message: 'Product not found' });
         }
-        yield product.deleteOne();
+        yield (product === null || product === void 0 ? void 0 : product.deleteOne());
         res.json({ message: 'Deleted Product' });
     }
     catch (err) {
@@ -102,7 +105,7 @@ const getProductsByCategory = (req, res) => __awaiter(void 0, void 0, void 0, fu
     try {
         const categoryId = req.params['categoryId'];
         if (!mongoose_1.default.Types.ObjectId.isValid(categoryId)) {
-            return res.status(400).json({ message: 'Invalid category ID' });
+            res.status(400).json({ message: 'Invalid category ID' });
         }
         const products = yield Products_1.default.find({ category_id: categoryId });
         res.json(products);

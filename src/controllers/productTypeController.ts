@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import ProductType from '../models/productType'
+import ProductType from '../models/ProductType';
 import Seller from '../models/Seller';
 import Product from '../models/Products';
 import { productTypeValidationSchema } from '../validations/productTypeValidations';
@@ -68,7 +68,6 @@ class ProductTypeController {
     const { id, userPincode } = req.params;
     //Find sellers operating in the user's pincode.
     const sellers = await Seller.find({ pincodes: userPincode });
-
     if (!sellers || sellers.length === 0) {
       res.status(500).json('No seller operating in this pin code'); 
     }
@@ -82,13 +81,13 @@ class ProductTypeController {
       name:productName,
       seller_id: { $in: sellers.map((seller) => seller._id) },
     }).sort({ price: 1 });
+    const stock:any = products[0]?.stock;
     //Return the product with the lowest price
-    if (products.length > 0) {
+    if (products.length > 0 && stock > 0) {
       res.status(200).json(products[0]);
       return;
     }
-    res.status(200).json('Product not found in nearby locations');
-    
+    res.status(200).json('Product out of stock');
   } catch (error: any) {
     res.status(500).json(new Error(`Error getting product with lowest price: ${error.message}`));
   }

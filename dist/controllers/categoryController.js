@@ -14,24 +14,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteCategory = exports.updateCategory = exports.createCategory = exports.getCategoryById = exports.getAllCategories = void 0;
 const Category_1 = __importDefault(require("../models/Category"));
-const getAllCategories = (res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log('getAllCategories');
+const getAllCategories = (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const categories = yield Category_1.default.find();
-        console.log('categories', categories);
         res.status(201).json(categories);
     }
     catch (err) {
-        console.log('err', err);
         res.json({ message: err.message });
+        return;
     }
 });
 exports.getAllCategories = getAllCategories;
 const getCategoryById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const category = yield Category_1.default.findById(req.params.id);
+        const category = yield Category_1.default.findById(req.params['id']);
         if (!category) {
-            return res.status(404).json({ message: 'Category not found' });
+            res.status(404).json({ message: 'Category not found' });
         }
         res.status(200).json(category);
     }
@@ -59,7 +57,8 @@ const updateCategory = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         const category = yield Category_1.default.findById(req.params['id']);
         if (!category) {
-            return res.status(404).json({ message: 'Category not found' });
+            res.status(404).json({ message: 'Category not found' });
+            return;
         }
         if (req.body.name != null) {
             category.name = req.body.name;
@@ -69,6 +68,7 @@ const updateCategory = (req, res) => __awaiter(void 0, void 0, void 0, function*
         }
         const updatedCategory = yield category.save();
         res.json(updatedCategory);
+        return;
     }
     catch (err) {
         res.status(400).json({ message: err.message });
@@ -79,7 +79,8 @@ const deleteCategory = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         const category = yield Category_1.default.findById(req.params['id']);
         if (!category) {
-            return res.status(404).json({ message: 'Category not found' });
+            res.status(404).json({ message: 'Category not found' });
+            return;
         }
         yield category.deleteOne();
         res.json({ message: 'Deleted Category' });

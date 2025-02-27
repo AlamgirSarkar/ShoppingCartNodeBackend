@@ -7,7 +7,6 @@ class OrderItemController {
   async createOrderItem(req: Request, res: Response): Promise<void> {
     try {
       const validatedData = validate(orderItemValidationSchema, req.body);
-
       if (!mongoose.isValidObjectId(validatedData.order_id)) {
            res.status(400).json({ message: 'Invalid Order ID' });
       }

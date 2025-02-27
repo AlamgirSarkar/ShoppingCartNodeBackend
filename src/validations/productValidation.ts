@@ -35,5 +35,9 @@ export const productSchema = Joi.object({
       'string.hex': `"productType_id" must be a valid hexadecimal string`,
       'string.length': `"productType_id" must be 24 characters long`,
       'any.required': `"productType_id" is a required field`
-})
+  }),
+  stock: Joi.number().required().messages({
+    'number.base': `"stock" should be a type of 'number'`,
+    'any.required': `"stock" is a required field`
+  })
 });

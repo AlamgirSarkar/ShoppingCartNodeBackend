@@ -18,7 +18,7 @@ const OTP_1 = __importDefault(require("../models/OTP"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jwtUtils_1 = require("../utils/jwtUtils");
 const otpUtils_1 = require("../utils/otpUtils");
-const jwtUtils_2 = require("../utils/jwtUtils");
+const nodemailer_1 = __importDefault(require("nodemailer"));
 const SALT_ROUNDS = 10;
 const requestOTP = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -34,12 +34,28 @@ const requestOTP = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             expires_at,
         });
         yield newOTP.save();
+        const transporter = nodemailer_1.default.createTransport({
+            host: process.env['EMAIL_HOST'],
+            port: Number(process.env['EMAIL_PORT']),
+            secure: false,
+            auth: {
+                user: process.env['EMAIL_USER'],
+                pass: process.env['EMAIL_PASS'],
+            },
+        });
+        const mailOptions = {
+            from: process.env['EMAIL_USER'],
+            to: 'alamgirsarkar47@gmail.com',
+            subject: 'Your OTP Code',
+            html: `<p>Your OTP code is: <b>${otp}</b>. This code will expire in 10 minutes.</p>`,
+        };
+        yield transporter.sendMail(mailOptions);
         console.log(`Sending OTP ${otp} to ${email} for ${purpose}`);
-        return res.status(200).json({ message: 'OTP sent successfully' });
+        res.status(200).json({ message: 'OTP sent successfully' });
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 exports.requestOTP = requestOTP;
@@ -48,60 +64,79 @@ const verifyOTP = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { email, otp, purpose } = req.body;
         const recentOtp = yield OTP_1.default.findOne({ email, purpose }).sort({ created_at: -1 });
         if (!recentOtp) {
-            return res.status(400).json({ message: 'Invalid OTP' });
+            res.status(400).json({ message: 'Invalid OTP' });
+            return;
         }
         if (recentOtp.expires_at < new Date()) {
-            return res.status(400).json({ message: 'OTP expired' });
+            res.status(400).json({ message: 'OTP expired' });
         }
         const validOTP = yield bcrypt_1.default.compare(otp, recentOtp.otp);
         if (!validOTP) {
-            return res.status(400).json({ message: 'Invalid OTP' });
+            res.status(400).json({ message: 'Invalid OTP' });
         }
         const user = yield User_1.default.findOne({ email: recentOtp.email });
         if (!user && purpose === 'register') {
-            return res.status(404).json({ message: 'User not found' });
+            res.status(404).json({ message: 'User not found' });
         }
         if (user && (purpose === 'login' || purpose === 'password-reset')) {
             const token = (0, jwtUtils_1.generateToken)(user, '10m');
-            return res.status(200).json({
+            res.status(200).json({
                 token: token,
                 user: user
             });
         }
         yield OTP_1.default.deleteOne({ email: recentOtp.email });
         if (purpose === 'register') {
-            return res.status(200).json({
+            res.status(200).json({
                 user: email
             });
         }
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 exports.verifyOTP = verifyOTP;
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, firstname, lastname, otp } = req.body;
+        const recentOtp = yield OTP_1.default.findOne({ email, purpose: "register" }).sort({ created_at: -1 });
+        if (!recentOtp) {
+            res.status(400).json({ message: 'Invalid OTP' });
+            return;
+        }
+        if (recentOtp.expires_at < new Date()) {
+            res.status(400).json({ message: 'OTP expired' });
+            return;
+        }
+        const validOTP = yield bcrypt_1.default.compare(otp, recentOtp.otp);
+        if (!validOTP) {
+            res.status(400).json({ message: 'Invalid OTP' });
+        }
         const password_hash = yield bcrypt_1.default.hash(password, SALT_ROUNDS);
         const newUser = new User_1.default({
             username,
             email,
-            password_hash
+            password_hash,
+            firstname,
+            lastname,
         });
         yield newUser.save();
-        return res.status(201).json({
+        yield OTP_1.default.deleteOne({ _id: recentOtp._id });
+        const token = (0, jwtUtils_1.generateToken)(newUser, '1d');
+        res.status(201).json({
             user: {
                 userId: newUser._id,
                 username: newUser.username,
                 email: newUser.email,
+                token
             },
         });
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 exports.register = register;
@@ -110,18 +145,18 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { email, password } = req.body;
         const user = yield User_1.default.findOne({ email });
         if (!user) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            res.status(401).json({ message: 'Invalid credentials' });
+            return;
         }
         const isPasswordValid = yield bcrypt_1.default.compare(password, user.password_hash);
-        console.log(isPasswordValid, password, user.password_hash);
         if (!isPasswordValid) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            res.status(401).json({ message: 'Invalid credentials' });
         }
         const access_token = (0, jwtUtils_1.generateToken)(user, '1d');
         const refresh_token = (0, jwtUtils_1.generateToken)(user, '7d');
         user['refresh_token'] = refresh_token;
         yield user.save();
-        return res.status(200).json({
+        res.status(200).json({
             user: {
                 userId: user._id,
                 username: user.username,
@@ -133,7 +168,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 exports.login = login;
@@ -141,24 +176,21 @@ const token = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { refreshToken } = req.body;
         if (!refreshToken) {
-            return res.status(400).json({ message: 'Refresh token is required' });
+            res.status(400).json({ message: 'Refresh token is required' });
         }
         try {
-            const decoded = yield (0, jwtUtils_2.verifyToken)(refreshToken);
-            console.log(decoded, 'decoded');
             const user = yield User_1.default.findOne({ refresh_token: refreshToken });
-            console.log(user, 'user');
             const accessToken = (0, jwtUtils_1.generateToken)(user, '1h');
-            return res.status(200).json({ accessToken });
+            res.status(200).json({ accessToken });
         }
         catch (dbError) {
             console.error('Database error:', dbError);
-            return res.status(500).json({ message: 'Internal server error' });
+            res.status(500).json({ message: 'Internal server error' });
         }
     }
     catch (error) {
         console.error('Token refresh error:', error);
-        return res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 exports.token = token;

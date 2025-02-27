@@ -18,8 +18,8 @@
     "paths": {
       "*": ["src/*"]
     },
-    "types": ["node"],
-    "typeRoots": ["./types", "./node_modules/@types"] ,
+    "types": ["mocha"],
+    "typeRoots": ["./node_modules/@types"] ,
     "allowUmdGlobalAccess": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
