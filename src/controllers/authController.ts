@@ -218,38 +218,6 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-//       const { refreshToken } = req.body;
-//       if (!refreshToken) {
-//          res.status(400).json({ message: 'Refresh token is required' });
-//       }
-//       // Verify the refresh token
-//       const decoded = verifyToken(refreshToken as string);
-//       if (!decoded) {
-//         res.status(401).json({ message: 'Invalid refresh token' });
-//         return
-//         }
-//         // Find the user associated with the refresh token
-//         const user = await User.findOne({refresh_token: refreshToken});
-//         if (!user) {
-//             res.status(401).json({ message: 'Invalid refresh token' });
-//             return
-//         }
-//         // Generate a new access token and a new refresh token
-//         const accessToken = generateToken(user as IUser, '1d');
-//         // Update the refresh token in the database
-//         if (!user) {
-//             res.status(401).json({ message: 'Invalid refresh token' });
-//             return
-//         }
-//         const refresh_token = generateToken(user as IUser, "1450m");
-//         user['refresh_token'] = refresh_token
-//         // Send the new access token and refresh token to the client
-//         res.status(200).json({ accessToken, refresh_token });
-//     } catch (error: any) {
-//       console.error('Token refresh error:', error);
-//        res.status(500).json({ message: 'Internal server error' });
-//     }
-// };
 export const token = async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body;
