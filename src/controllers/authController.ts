@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt';
 import { generateToken } from '../utils/jwtUtils';
 import { generateOTP } from '../utils/otpUtils'; 
 import nodemailer from 'nodemailer';
+import { verifyToken } from '../utils/jwtUtils';
 const SALT_ROUNDS = 10;
 
 export const requestOTP = async (req: Request, res: Response) => {
@@ -40,7 +41,7 @@ export const requestOTP = async (req: Request, res: Response) => {
         // Email options
         const mailOptions = {
             from: process.env['EMAIL_USER'],
-            to: 'alamgirsarkar47@gmail.com',
+            to: email,
             subject: 'Your OTP Code',
             html: `<p>Your OTP code is: <b>${otp}</b>. This code will expire in 10 minutes.</p>`,
         };
@@ -193,7 +194,7 @@ export const login = async (req: Request, res: Response) => {
 
         // Generate a JWT
         const access_token = generateToken(user, '1d');
-        const refresh_token = generateToken(user, '7d');
+        const refresh_token = generateToken(user, '1450m');
         user['refresh_token']  = refresh_token;
         await user.save()
         // Respond with the user and token
@@ -219,18 +220,28 @@ export const token = async (req: Request, res: Response) => {
          res.status(400).json({ message: 'Refresh token is required' });
       }
       // Verify the refresh token
-        try {
-          // Find the user associated with the refresh token
-          //const decoded = await verifyToken(refreshToken);         
-          const user = await User.findOne({refresh_token: refreshToken});
-          // Generate a new access token and a new refresh token
-          const accessToken = generateToken(user as IUser, '1h');
-          // Send the new access token and refresh token to the client
-           res.status(200).json({ accessToken});
-        } catch (dbError: any) {
-          console.error('Database error:', dbError);
-           res.status(500).json({ message: 'Internal server error' });
+      const decoded = verifyToken(refreshToken as string);
+      if (!decoded) {
+        res.status(401).json({ message: 'Invalid refresh token' });
+        return
         }
+        // Find the user associated with the refresh token
+        const user = await User.findOne({refresh_token: refreshToken});
+        if (!user) {
+            res.status(401).json({ message: 'Invalid refresh token' });
+            return
+        }
+        // Generate a new access token and a new refresh token
+        const accessToken = generateToken(user as IUser, '1d');
+        // Update the refresh token in the database
+        if (!user) {
+            res.status(401).json({ message: 'Invalid refresh token' });
+            return
+        }
+        const refresh_token = generateToken(user as IUser, "1450m");
+        user['refresh_token'] = refresh_token
+        // Send the new access token and refresh token to the client
+        res.status(200).json({ accessToken, refresh_token });
     } catch (error: any) {
       console.error('Token refresh error:', error);
        res.status(500).json({ message: 'Internal server error' });
