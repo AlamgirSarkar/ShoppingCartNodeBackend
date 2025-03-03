@@ -6,6 +6,8 @@ import { generateToken } from '../utils/jwtUtils';
 import { generateOTP } from '../utils/otpUtils'; 
 import nodemailer from 'nodemailer';
 import { verifyToken } from '../utils/jwtUtils';
+import { redis } from '../utils/redisCient';
+
 const SALT_ROUNDS = 10;
 
 export const requestOTP = async (req: Request, res: Response) => {
@@ -177,73 +179,117 @@ export const register = async (req: Request, res: Response):Promise<void> => {
 };
 
 export const login = async (req: Request, res: Response) => {
-    try {
-        const { email, password } = req.body;
-        // Find the user by email
-        const user = await User.findOne({ email });
-        if (!user) {
-           res.status(401).json({ message: 'Invalid credentials' });
-           return
-        }
-
-        // Compare the password
-        const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-        if (!isPasswordValid) {
-           res.status(401).json({ message: 'Invalid credentials' });
-        }
-
-        // Generate a JWT
-        const access_token = generateToken(user, '1d');
-        const refresh_token = generateToken(user, '1450m');
-        user['refresh_token']  = refresh_token;
-        await user.save()
-        // Respond with the user and token
-         res.status(200).json({
-          user: {
-            userId: user._id,
-            username: user.username,
-            email: user.email,
-          },
-          access_token,
-          refresh_token,
-        });
-    } catch (error: any) {
-        console.error(error);
-         res.status(500).json({ message: 'Internal server error' });
+  try {
+    const { email, password } = req.body;
+    // Find the user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      res.status(401).json({ message: 'Invalid credentials' });
+      return;
     }
+
+    // Compare the password
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    if (!isPasswordValid) {
+      res.status(401).json({ message: 'Invalid credentials' });
+      return;
+    }
+
+    // Generate a JWT
+    const access_token = generateToken(user, '1d');
+    const refresh_token = generateToken(user, '1450m'); // 1 day + 10 minutes
+
+    // Store the refresh token in Redis
+    await redis.set(`refresh_token:${user._id}`, refresh_token, { EX: 1450 * 60 }); // 1450 minutes in seconds
+
+    // Respond with the user and token
+    res.status(200).json({
+      user: {
+        userId: user._id,
+        username: user.username,
+        email: user.email,
+      },
+      access_token,
+      refresh_token,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 };
 
+//       const { refreshToken } = req.body;
+//       if (!refreshToken) {
+//          res.status(400).json({ message: 'Refresh token is required' });
+//       }
+//       // Verify the refresh token
+//       const decoded = verifyToken(refreshToken as string);
+//       if (!decoded) {
+//         res.status(401).json({ message: 'Invalid refresh token' });
+//         return
+//         }
+//         // Find the user associated with the refresh token
+//         const user = await User.findOne({refresh_token: refreshToken});
+//         if (!user) {
+//             res.status(401).json({ message: 'Invalid refresh token' });
+//             return
+//         }
+//         // Generate a new access token and a new refresh token
+//         const accessToken = generateToken(user as IUser, '1d');
+//         // Update the refresh token in the database
+//         if (!user) {
+//             res.status(401).json({ message: 'Invalid refresh token' });
+//             return
+//         }
+//         const refresh_token = generateToken(user as IUser, "1450m");
+//         user['refresh_token'] = refresh_token
+//         // Send the new access token and refresh token to the client
+//         res.status(200).json({ accessToken, refresh_token });
+//     } catch (error: any) {
+//       console.error('Token refresh error:', error);
+//        res.status(500).json({ message: 'Internal server error' });
+//     }
+// };
 export const token = async (req: Request, res: Response) => {
-    try {
-      const { refreshToken } = req.body;
-      if (!refreshToken) {
-         res.status(400).json({ message: 'Refresh token is required' });
-      }
-      // Verify the refresh token
-      const decoded = verifyToken(refreshToken as string);
-      if (!decoded) {
-        res.status(401).json({ message: 'Invalid refresh token' });
-        return
-        }
-        // Find the user associated with the refresh token
-        const user = await User.findOne({refresh_token: refreshToken});
-        if (!user) {
-            res.status(401).json({ message: 'Invalid refresh token' });
-            return
-        }
-        // Generate a new access token and a new refresh token
-        const accessToken = generateToken(user as IUser, '1d');
-        // Update the refresh token in the database
-        if (!user) {
-            res.status(401).json({ message: 'Invalid refresh token' });
-            return
-        }
-        const refresh_token = generateToken(user as IUser, "1450m");
-        user['refresh_token'] = refresh_token
-        // Send the new access token and refresh token to the client
-        res.status(200).json({ accessToken, refresh_token });
-    } catch (error: any) {
-      console.error('Token refresh error:', error);
-       res.status(500).json({ message: 'Internal server error' });
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      res.status(400).json({ message: 'Refresh token is required' });
+      return;
     }
+
+    // Verify the refresh token
+    const decoded = verifyToken(refreshToken as string);
+    if (!decoded) {
+      res.status(401).json({ message: 'Invalid refresh token' });
+      return;
+    }
+
+    // Find the user associated with the refresh token
+    const user = await User.findById({_id:decoded.userId});
+    if (!user) {
+      res.status(401).json({ message: 'Invalid refresh token' });
+      return;
+    }
+
+    // Retrieve the refresh token from Redis
+    const storedRefreshToken = await redis.get(`refresh_token:${user._id}`);
+    if (storedRefreshToken !== refreshToken) {
+      res.status(401).json({ message: 'Invalid refresh token' });
+      return;
+    }
+
+    // Generate a new access token and a new refresh token
+    const accessToken = generateToken(user as IUser, '1d');
+    const newRefreshToken = generateToken(user as IUser, '1450m'); // 1 day + 10 minutes
+
+    // Update the refresh token in Redis
+    await redis.set(`refresh_token:${user._id}`, newRefreshToken, { EX: 1450 * 60 }); // 1450 minutes in seconds
+
+    // Send the new access token and refresh token to the client
+    res.status(200).json({ accessToken, refresh_token: newRefreshToken });
+  } catch (error: any) {
+    console.error('Token refresh error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 };
